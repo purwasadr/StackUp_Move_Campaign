@@ -54,4 +54,46 @@ module NamedAddr::purwasadrCoin {
         mint(&account, @NamedAddr, 28);
         assert!(balance_of(addr) == 28, 0);
     }
+
+    #[test(account = @0x1)]
+    #[expected_failure] // This test should abort
+    fun mint_non_owner(account: signer) acquires Balance {
+        // Make sure the address we've chosen doesn't match the module
+        // owner address
+        publish_balance(&account);
+        assert!(signer::address_of(&account) != MODULE_OWNER, 0);
+        mint(&account, @0x1, 10);
+    }
+
+    #[test(account = @0x1)]
+    fun publish_balance_has_zero(account: signer) acquires Balance {
+        let addr = signer::address_of(&account);
+        publish_balance(&account);
+        assert!(balance_of(addr) == 0, 0);
+    }
+
+    #[test(account = @0x1)]
+    #[expected_failure(abort_code = 2)] // Can specify an abort code
+    fun publish_balance_already_exists(account: signer) {
+        publish_balance(&account);
+        publish_balance(&account);
+    }
+
+    #[test(account = @NamedAddr)]
+    fun can_withdraw_amount(account: signer) acquires Balance {
+        publish_balance(&account);
+        let amount = 1000;
+        let addr = signer::address_of(&account);
+        mint(&account, addr, amount);
+        let Coin { value } = withdraw(addr, amount);
+        assert!(value == amount, 0);
+    }
+
+    #[test(account = @0x1)]
+    #[expected_failure] // This test should fail
+    fun withdraw_too_much(account: signer) acquires Balance {
+        let addr = signer::address_of(&account);
+        publish_balance(&account);
+        Coin { value: _ } = withdraw(addr, 1);
+    }
 }
