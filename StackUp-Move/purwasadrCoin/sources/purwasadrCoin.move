@@ -1,4 +1,7 @@
 module 0xCAFE::purwasadrCoin {
+    #[test_only]
+    use std::signer;
+
     struct Coin has key {
         value: u64,
     }
@@ -7,4 +10,10 @@ module 0xCAFE::purwasadrCoin {
         move_to(&account, Coin { value })
     }
 
+    #[test(account = @0xC0FFEE)]
+    fun test_mint_10(account: signer) acquires Coin {
+        let addr = signer::address_of(&account);
+        mint(account, 10);
+        assert!(borrow_global(addr).value == 10, 0);
+    }
 }

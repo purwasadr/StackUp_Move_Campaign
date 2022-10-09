@@ -46,4 +46,12 @@ module NamedAddr::purwasadrCoin {
         let Coin { value } = check;
         *balance_ref = balance + value;
     }
+
+    #[test(account = @NamedAddr)] 
+    fun mint_check_balance(account: signer) acquires Balance {
+        let addr = signer::address_of(&account);
+        publish_balance(&account);
+        mint(&account, @NamedAddr, 28);
+        assert!(balance_of(addr) == 28, 0);
+    }
 }
